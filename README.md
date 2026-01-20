@@ -1,6 +1,16 @@
 # tampa-devs-airgap-presentation
 Tampa Devs Air Gap Presentation Repo
 
+### Downloading this Repo
+
+```bash
+git clone https://github.com/natrufthr/tampa-devs-airgap-presentation.git
+# This repo uses git lfs and git lfs must be downloaded to get the bigger files
+git install lfs
+git pull
+```
+
+
 # Demo 1
 ##### Description: 
 - k3s cluster init w/zarf 
