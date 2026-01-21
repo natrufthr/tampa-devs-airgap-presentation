@@ -6,10 +6,11 @@ Tampa Devs Air Gap Presentation Repo
 ```bash
 git clone https://github.com/natrufthr/tampa-devs-airgap-presentation.git
 # This repo uses git lfs and git lfs must be downloaded to get the bigger files
-git install lfs
+cd tampa-devs-airgap-presentation
+git lfs install
+git checkout staging
 git pull
 ```
-
 # Demo 1
 ##### Description: 
 - k3s cluster init w/zarf 
@@ -35,8 +36,8 @@ sudo mv zarf /usr/local/bin/zarf
 ```
 3. Create Sentinel Docker Image
 ```bash
-cd tampa-devs-airgap-presentation/DEMO-1/files
-docker load -i sentinel-image.tar
+cd tampa-devs-airgap-presentation/DEMO-1/DOCKER_IMAGE
+docker build -t sentinel:v1 .
 ```
 3. Create Zarf Package
 	1. Init Package
