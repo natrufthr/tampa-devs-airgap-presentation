@@ -92,7 +92,7 @@ docker build -t sentinel:v1 .
 	 git pull
 	```
 
-1. Download Zarf Binary
+2. Download Zarf Binary
 	```bash
 	cd DEMO-2/files
 	```
@@ -105,7 +105,7 @@ docker build -t sentinel:v1 .
 	chmod +x zarf
 	```
 
-2. Create and Save Sentinel Docker Image
+3. Create and Save Sentinel Docker Image
 	```bash
 	cd DOCKER_IMAGE
 	```
@@ -117,9 +117,9 @@ docker build -t sentinel:v1 .
 	```bash
 	docker save sentinel:v1 -o sentinel-v1.tar
 	```
-3. Create Zarf Package
+4. Create Zarf Package
 	1. Init Package
-		```bash
+	```bash
 	cd ../zarf-packages
 	```
 	
