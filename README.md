@@ -192,6 +192,37 @@ docker build -t sentinel:v1 .
 	```
 
 	4. Sentinel AppSet Package
+	```bash
+	cd ../../git-charts
+	```
+	
+	```bash
+	cat sentinel-appset-w-values.yaml
+	```
+
+	```bash
+	cat zarf.yaml
+	```
+
+```bash
+../zarf package create ./
+```
+
+```bash
+vi sentinel-appset-w-values.yaml # update image to nginx:latest
+```
+
+```bash
+vi zarf.yaml #update name to include nginx
+```
+
+```bash
+../zarf package create ./
+```
+
+```bash
+ls
+```
 #### Part B
 1. Move over Zarf Packages & Binary
 2. Zarf Init + kind cluster
