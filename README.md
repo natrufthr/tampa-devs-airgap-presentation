@@ -1,6 +1,6 @@
 # tampa-devs-airgap-presentation
-Tampa Devs Air Gap Presentation Repo
 
+Tampa Devs Air Gap Presentation Repo
 ### Downloading this Repo
 
 ```bash
@@ -75,35 +75,52 @@ docker build -t sentinel:v1 .
 	```bash
 	mv tampa-devs-airgap-presentation repo
 	```
+	
+	```bash
+	cd repo
+	```
+
+	```bash
+	git checkout staging
+	```
+	
+	```bash
+	git lfs install
+	```
+	
+	```bash
+	 git pull
+	```
+
 1. Download Zarf Binary
-```bash
-cd repo/DEMO-2/files
-```
+	```bash
+	cd repo/DEMO-2/files
+	```
 
-```
-mv zarf_v0.69.0_Linux_amd64 zarf
-```
+	```bash
+	mv zarf_v0.69.0_Linux_amd64 zarf
+	```
 
-```
-chmod +x zarf
-```
+	```bash
+	chmod +x zarf
+	```
 
-```
-sudo mv zarf /usr/local/bin/zarf
-```
+	```bash
+	sudo mv zarf /usr/local/bin/zarf
+	```
 
-3. Create and Save Sentinel Docker Image
-```bash
-cd repo/DEMO-2/DOCKER_IMAGE
-```
+2. Create and Save Sentinel Docker Image
+	```bash
+	cd repo/DEMO-2/DOCKER_IMAGE
+	```
 
-```
-docker build -t sentinel:v1 .
-```
+	```
+	docker build -t sentinel:v1 .
+	```
 
-```bash
-docker save sentinel:v1 -o sentinel-v1.tar
-```
+	```bash
+	docker save sentinel:v1 -o sentinel-v1.tar
+	```
 3. Create Zarf Package
 	1. Init Package
 	2. Traefik Package
