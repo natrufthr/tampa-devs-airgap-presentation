@@ -1,0 +1,1826 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SENTINEL — JUATS (SIM)</title>
+  <style>
+
+	  /* ---------- Classification Banner ---------- */
+
+	#classificationBanner{
+	  position: fixed;
+	  top: 0; left: 0; right: 0;
+	  z-index: 11000; /* above splash + boot */
+	  height: 34px;
+	  background: linear-gradient(
+		90deg,
+		#7f2ca3,
+		#f9e547,
+		#7f2ca3
+	  );
+	  border-bottom: 2px solid #b7950b;
+	  display: flex;
+	  align-items: center;
+	  justify-content: center;
+	  font-family: var(--mono);
+	  font-size: 12px;
+	  font-weight: 700;
+	  letter-spacing: 1.4px;
+	  color: #000;
+	  text-transform: uppercase;
+	  box-shadow: 0 4px 14px rgba(0,0,0,.55);
+	  pointer-events: none; /* prevents blocking clicks */
+	}
+
+	#classificationBanner span{
+	  display: flex;
+	  align-items: center;
+	  gap: 10px;
+	}
+
+	.classDot{
+	  width: 8px;
+	  height: 8px;
+	  border-radius: 50%;
+	  background: #000;
+	}
+	/* ---------- Logo Splash (shows BEFORE boot screen) ---------- */
+	#splash {
+	  position: fixed; inset: 0;
+	  z-index: 10000; /* higher than #boot */
+	  display: flex;
+	  align-items: center;
+	  justify-content: center;
+	  padding: 24px;
+	  background:
+		radial-gradient(900px 560px at 20% 15%, rgba(77,171,247,.16), transparent 55%),
+		radial-gradient(900px 560px at 80% 25%, rgba(56,217,169,.12), transparent 55%),
+		linear-gradient(180deg, rgba(0,0,0,.96), rgba(5,8,12,.96));
+	  opacity: 1;
+	  transition: opacity 1200ms ease;
+	}
+
+	#splash.fadeOut {
+	  opacity: 0;
+	  pointer-events: none;
+	}
+
+	.splashInner {
+	  width: min(560px, 92vw);
+	  text-align: center;
+	}
+
+	.splashLogo {
+	  width: 100%;
+	  max-width: 520px;
+	  height: auto;
+	  display: block;
+	  margin: 0 auto;
+	  filter: drop-shadow(0 16px 46px rgba(0,0,0,.65));
+	}
+
+	.splashHint {
+	  margin-top: 14px;
+	  font-family: var(--mono);
+	  font-size: 12px;
+	  color: rgba(127,162,193,.95);
+	  letter-spacing: .6px;
+	  text-transform: uppercase;
+	}
+
+    :root{
+      --bg:#070b10;
+      --panel:#0c141d;
+      --panel2:#0a1119;
+      --line:#183044;
+      --txt:#d7e7f7;
+      --muted:#7fa2c1;
+      --good:#38d9a9;
+      --warn:#ffd43b;
+      --bad:#ff6b6b;
+      --accent:#4dabf7;
+      --shadow: 0 12px 28px rgba(0,0,0,.45);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+	  padding-top: 34px;
+      margin:0;
+      background:
+        radial-gradient(1200px 700px at 20% 10%, rgba(77,171,247,.14), transparent 60%),
+        radial-gradient(900px 600px at 80% 30%, rgba(56,217,169,.10), transparent 55%),
+        linear-gradient(180deg, #060a0f, #070b10 40%, #05080c);
+      color:var(--txt);
+      font-family:var(--sans);
+      letter-spacing:.2px;
+      overflow:hidden;
+    }
+
+    /* ---------- Boot / Loading Overlay ---------- */
+    #boot{
+      position:fixed; inset:0;
+      z-index:9999;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+      background:
+        radial-gradient(900px 560px at 20% 15%, rgba(77,171,247,.18), transparent 55%),
+        radial-gradient(900px 560px at 80% 25%, rgba(56,217,169,.12), transparent 55%),
+        linear-gradient(180deg, rgba(0,0,0,.92), rgba(5,8,12,.92));
+      backdrop-filter: blur(10px);
+    }
+    .bootCard{
+      width:min(980px, 96vw);
+      border:1px solid rgba(24,48,68,.85);
+      border-radius:18px;
+      background: linear-gradient(180deg, rgba(12,20,29,.92), rgba(10,17,25,.72));
+      box-shadow: 0 18px 46px rgba(0,0,0,.65);
+      overflow:hidden;
+      position:relative;
+    }
+    .bootTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:14px 18px;
+      border-bottom:1px solid rgba(24,48,68,.55);
+      background: rgba(7,11,16,.32);
+      font-family:var(--mono);
+      font-size:12px;
+      color:rgba(127,162,193,.95);
+      letter-spacing:.6px;
+    }
+    .bootTop .tag{
+      padding:6px 10px;
+      border:1px solid rgba(77,171,247,.35);
+      border-radius:999px;
+      background: rgba(77,171,247,.10);
+      color:rgba(215,231,247,.92);
+    }
+    .bootBody{
+      display:grid;
+      grid-template-columns: 340px 1fr;
+      gap:18px;
+      padding:18px;
+    }
+    @media (max-width: 860px){
+      .bootBody{grid-template-columns:1fr}
+    }
+
+    .ringWrap{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      padding:10px;
+      border:1px solid rgba(24,48,68,.55);
+      border-radius:16px;
+      background: rgba(7,11,16,.22);
+      min-height: 320px;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .ring{
+      width: 210px;
+      height: 210px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(7,11,16,.92) 58%, transparent 59%),
+        conic-gradient(from 0deg,
+          rgba(77,171,247,.95),
+          rgba(56,217,169,.92),
+          rgba(255,212,59,.88),
+          rgba(255,107,107,.82),
+          rgba(77,171,247,.95));
+      position:relative;
+      filter: drop-shadow(0 0 18px rgba(77,171,247,.28));
+      animation: spin 1.25s linear infinite;
+    }
+    .ring:before{
+      content:"";
+      position:absolute; inset:10px;
+      border-radius:50%;
+      background: radial-gradient(circle at 50% 40%, rgba(77,171,247,.16), rgba(0,0,0,0) 60%),
+                  rgba(7,11,16,.92);
+      border:1px solid rgba(24,48,68,.8);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+    }
+    .ringText{
+      position:absolute;
+      width: 210px;
+      height: 210px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-family:var(--mono);
+      text-align:center;
+      color:rgba(215,231,247,.92);
+      letter-spacing:1px;
+      text-transform:uppercase;
+      font-size:12px;
+      line-height:1.25;
+      pointer-events:none;
+    }
+    .ringText b{font-size:14px; letter-spacing:2px}
+    .bootPulse{
+      margin-top:14px;
+      font-family:var(--mono);
+      font-size:12px;
+      color:rgba(127,162,193,.95);
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .dots::after{
+      content:"";
+      display:inline-block;
+      width:1ch;
+      animation:dots 1.1s steps(4,end) infinite;
+    }
+    @keyframes dots{
+      0%{content:""}
+      25%{content:"."}
+      50%{content:".."}
+      75%{content:"..."}
+      100%{content:""}
+    }
+
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .bootCopy{
+      padding:14px 16px;
+      border:1px solid rgba(24,48,68,.55);
+      border-radius:16px;
+      background: rgba(7,11,16,.22);
+    }
+    .bootCopy h1{
+      margin:0 0 10px 0;
+      font-size:18px;
+      letter-spacing:.8px;
+    }
+    .bootCopy .sub{
+      font-family:var(--mono);
+      color:rgba(127,162,193,.95);
+      font-size:12px;
+      margin-bottom:10px;
+    }
+    .bootCopy p{
+      margin:10px 0;
+      color:rgba(215,231,247,.86);
+      line-height:1.55;
+      font-size:14px;
+    }
+    .bootCopy .meta{
+      margin-top:14px;
+      font-family:var(--mono);
+      font-size:12px;
+      color:rgba(127,162,193,.95);
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+    }
+    .meta .pill{
+      padding:6px 10px;
+      border:1px solid rgba(24,48,68,.7);
+      border-radius:999px;
+      background: rgba(12,20,29,.55);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+    }
+
+    .secureBanner{
+      border-top:1px solid rgba(24,48,68,.55);
+      background: linear-gradient(90deg, rgba(255,107,107,.10), rgba(255,212,59,.08), rgba(77,171,247,.10));
+      padding:14px 18px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      font-family:var(--mono);
+    }
+    .secureLeft{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      color:rgba(215,231,247,.92);
+      font-size:12px;
+      letter-spacing:.6px;
+    }
+    .lock{
+      width:10px;height:10px;border-radius:50%;
+      background: rgba(56,217,169,.95);
+      box-shadow: 0 0 18px rgba(56,217,169,.55);
+    }
+    .enterBtn{
+      appearance:none;
+      border:1px solid rgba(77,171,247,.65);
+      background: rgba(77,171,247,.14);
+      color: rgba(215,231,247,.95);
+      padding:10px 14px;
+      border-radius:12px;
+      font-family:var(--mono);
+      font-size:12px;
+      cursor:pointer;
+      transition: transform .08s ease, border-color .15s ease, background .15s ease;
+    }
+    .enterBtn:hover{
+      transform: translateY(-1px);
+      border-color: rgba(56,217,169,.55);
+      background: rgba(56,217,169,.12);
+    }
+    .enterHint{
+      color:rgba(127,162,193,.95);
+      font-size:12px;
+    }
+
+    .bootFadeOut{
+      animation: bootFade .55s ease forwards;
+    }
+    @keyframes bootFade{
+      to{ opacity:0; transform: scale(1.01); visibility:hidden; }
+    }
+
+    /* ---------- Mission Log Modal ---------- */
+    #logModal{
+      position:fixed; inset:0;
+      z-index:9000;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      background: rgba(0,0,0,.62);
+      backdrop-filter: blur(10px);
+    }
+    #logModal.show{display:flex;}
+    .modalCard{
+      width:min(980px, 96vw);
+      height:min(720px, 88vh);
+      border-radius:18px;
+      background: linear-gradient(180deg, rgba(12,20,29,.96), rgba(10,17,25,.82));
+      border:1px solid rgba(24,48,68,.85);
+      box-shadow: 0 22px 60px rgba(0,0,0,.72);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      position:relative;
+    }
+    .modalHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:12px 14px;
+      border-bottom:1px solid rgba(24,48,68,.55);
+      background: rgba(7,11,16,.30);
+      font-family:var(--mono);
+    }
+    .modalTitle{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      letter-spacing:.9px;
+      text-transform:uppercase;
+      color: rgba(215,231,247,.88);
+      font-size:12px;
+    }
+    .modalTitle .dot{
+      width:10px;height:10px;border-radius:50%;
+      background: rgba(77,171,247,.95);
+      box-shadow: 0 0 18px rgba(77,171,247,.45);
+    }
+    .modalActions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .modalBtn{
+      appearance:none;
+      border:1px solid rgba(24,48,68,.8);
+      background: rgba(12,20,29,.7);
+      color: var(--txt);
+      padding:10px 12px;
+      border-radius:12px;
+      font-family:var(--mono);
+      font-size:12px;
+      cursor:pointer;
+      transition: transform .08s ease, border-color .15s ease, background .15s ease;
+    }
+    .modalBtn:hover{
+      transform: translateY(-1px);
+      border-color: rgba(77,171,247,.55);
+      background: rgba(12,20,29,.86);
+    }
+    .modalBtn.primary{
+      border-color: rgba(77,171,247,.6);
+      background: rgba(77,171,247,.12);
+    }
+    .modalBody{
+      padding:12px 14px;
+      overflow:auto;
+      flex:1;
+      font-family:var(--mono);
+      font-size:12px;
+      line-height:1.45;
+    }
+    .modalFooter{
+      padding:10px 14px;
+      border-top:1px solid rgba(24,48,68,.55);
+      background: rgba(7,11,16,.22);
+      font-family:var(--mono);
+      font-size:11px;
+      color: rgba(127,162,193,.92);
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    /* Log line styles (shared) */
+    .logLine{
+      padding:8px 10px;
+      border-radius:10px;
+      border:1px solid rgba(24,48,68,.45);
+      background: rgba(12,20,29,.35);
+      margin-bottom:8px;
+    }
+    .logMeta{
+      display:flex; justify-content:space-between; gap:10px;
+      color:rgba(127,162,193,.95);
+      font-size:11px;
+      margin-bottom:4px;
+      flex-wrap:wrap;
+    }
+
+    /* ---------- App styles ---------- */
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:14px 18px;
+      border-bottom:1px solid rgba(24,48,68,.55);
+      background: linear-gradient(180deg, rgba(12,20,29,.92), rgba(10,17,25,.65));
+      backdrop-filter: blur(10px);
+      position:sticky; top:0; z-index:10;
+    }
+    .brand{display:flex; gap:12px; align-items:center; font-weight:700;}
+    .badge{
+      font-family:var(--mono);
+      font-size:12px;
+      padding:4px 8px;
+      border:1px solid rgba(77,171,247,.35);
+      color:rgba(215,231,247,.9);
+      border-radius:999px;
+      background: rgba(77,171,247,.08);
+    }
+    .right{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+      font-family:var(--mono);
+      font-size:12px;
+      color:var(--muted);
+    }
+    .pill{
+      padding:6px 10px;
+      border:1px solid rgba(24,48,68,.7);
+      border-radius:999px;
+      background: rgba(12,20,29,.55);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+    }
+
+    main{
+      display:grid;
+      grid-template-columns: 360px 1fr 380px;
+      gap:14px;
+      padding:14px;
+      height: calc(100% - 56px);
+      overflow:hidden;
+    }
+
+    .panel{
+      background: linear-gradient(180deg, rgba(12,20,29,.92), rgba(10,17,25,.72));
+      border:1px solid rgba(24,48,68,.75);
+      border-radius:14px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      min-height: 220px;
+    }
+    .panel h2{
+      margin:0;
+      padding:12px 14px;
+      font-size:13px;
+      letter-spacing:.9px;
+      text-transform:uppercase;
+      color: rgba(215,231,247,.86);
+      border-bottom:1px solid rgba(24,48,68,.55);
+      background: rgba(7,11,16,.35);
+      font-family:var(--mono);
+    }
+    .panel .content{padding:12px 14px; overflow:auto; flex:1}
+    .mapWrap{padding:0; position:relative;}
+    canvas{width:100%; height:100%; display:block;}
+    #map{
+      background: linear-gradient(180deg, rgba(8,12,17,.95), rgba(6,10,15,.92));
+      cursor: crosshair;
+    }
+
+    .mapOverlay{
+      position:absolute; inset:10px;
+      pointer-events:none;
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+    }
+    .hud{
+      pointer-events:none;
+      font-family:var(--mono);
+      font-size:12px;
+      color:rgba(215,231,247,.88);
+      background: rgba(7,11,16,.55);
+      border:1px solid rgba(24,48,68,.6);
+      border-radius:12px;
+      padding:10px 12px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 10px 22px rgba(0,0,0,.35);
+      max-width: 460px;
+    }
+    .hud .row{display:flex; gap:10px; flex-wrap:wrap}
+    .kv{display:flex; gap:6px; align-items:baseline}
+    .k{color:rgba(127,162,193,.9)}
+    .v{color:rgba(215,231,247,.95)}
+    .small{font-size:11px; color:rgba(127,162,193,.95)}
+    .split{display:grid; grid-template-columns: 1fr 1fr; gap:10px;}
+
+    .droneRow{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      padding:10px 10px;
+      border:1px solid rgba(24,48,68,.55);
+      border-radius:12px;
+      background: rgba(12,20,29,.4);
+      margin-bottom:10px;
+      cursor:pointer;
+      transition: transform .08s ease, border-color .15s ease, background .15s ease;
+    }
+    .droneRow:hover{
+      transform: translateY(-1px);
+      border-color: rgba(77,171,247,.45);
+      background: rgba(12,20,29,.58);
+    }
+    .droneRow.selected{
+      border-color: rgba(77,171,247,.65);
+      background: rgba(77,171,247,.08);
+    }
+    .leftInfo{display:flex; flex-direction:column; gap:4px}
+    .name{font-family:var(--mono); font-size:12px; letter-spacing:.6px;}
+    .sub{font-size:12px; color:var(--muted);}
+    .status{
+      font-family:var(--mono);
+      font-size:11px;
+      padding:6px 8px;
+      border-radius:999px;
+      border:1px solid rgba(24,48,68,.7);
+      background: rgba(7,11,16,.35);
+      white-space:nowrap;
+    }
+    .ok{color:var(--good); border-color: rgba(56,217,169,.35); background: rgba(56,217,169,.08)}
+    .warning{color:var(--warn); border-color: rgba(255,212,59,.35); background: rgba(255,212,59,.08)}
+    .critical{color:var(--bad); border-color: rgba(255,107,107,.35); background: rgba(255,107,107,.08)}
+
+    .controls{
+      display:flex; gap:10px; flex-wrap:wrap;
+      padding:12px 14px;
+      border-top:1px solid rgba(24,48,68,.55);
+      background: rgba(7,11,16,.28);
+    }
+    button{
+      appearance:none;
+      border:1px solid rgba(24,48,68,.8);
+      background: rgba(12,20,29,.7);
+      color: var(--txt);
+      padding:10px 12px;
+      border-radius:12px;
+      font-family:var(--mono);
+      font-size:12px;
+      cursor:pointer;
+      transition: transform .08s ease, border-color .15s ease, background .15s ease;
+    }
+    button:hover{transform: translateY(-1px); border-color: rgba(77,171,247,.55); background: rgba(12,20,29,.86)}
+    button.primary{border-color: rgba(77,171,247,.6); background: rgba(77,171,247,.12);}
+
+    .footerNote{
+      font-family: var(--mono);
+      font-size: 11px;
+      color: rgba(127,162,193,.85);
+      padding: 10px 14px;
+      border-top: 1px solid rgba(24,48,68,.55);
+      background: rgba(7,11,16,.20);
+    }
+
+    /* Detail stats */
+    .statRow{
+      margin-bottom: 12px;
+      padding: 10px;
+      border:1px solid rgba(24,48,68,.55);
+      border-radius: 12px;
+      background: rgba(12,20,29,.35);
+    }
+    .statTop{
+      display:flex;
+      justify-content:space-between;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: rgba(215,231,247,.92);
+      margin-bottom: 8px;
+    }
+    .bar{
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(24,48,68,.55);
+      border: 1px solid rgba(24,48,68,.75);
+      overflow: hidden;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+    }
+    .fill{height:100%; width:0%}
+    .statHint{
+      font-family: var(--mono);
+      font-size: 11px;
+      color: rgba(127,162,193,.9);
+      margin-top: 6px;
+    }
+
+    /* Right panel internal sections */
+    .sectionTitle{
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: .8px;
+      color: rgba(215,231,247,.8);
+      text-transform: uppercase;
+      padding: 10px 14px;
+      border-top: 1px solid rgba(24,48,68,.55);
+      border-bottom: 1px solid rgba(24,48,68,.35);
+      background: rgba(7,11,16,.22);
+    }
+
+    @media (max-width: 1180px){
+      body{overflow:auto}
+      main{grid-template-columns: 1fr; height:auto; overflow:visible}
+      .panel{min-height:280px}
+      .mapWrap{min-height:440px}
+    }
+  </style>
+</head>
+<body>
+<!-- CLASSIFICATION BANNER -->
+<div id="classificationBanner">
+  <span>
+    <div class="classDot"></div>
+    TAMPA-DEVS (DEMO) — AUTHORIZED PERSONNEL ONLY
+    <div class="classDot"></div>
+  </span>
+</div>
+
+<!-- LOGO SPLASH (shows first, then fades to boot/login) -->
+<div id="splash" aria-label="SENTINEL splash">
+  <div class="splashInner">
+    <img
+      class="splashLogo"
+      src="sentinel-logo.png"
+      alt="SENTINEL logo"
+    />
+    <div class="splashHint">Initializing…</div>
+  </div>
+</div>
+
+
+<!-- BOOT / LOADING SCREEN -->
+<div id="boot" aria-label="Loading screen">
+  <div class="bootCard">
+    <div class="bootTop">
+      <div>SECURE BOOT • <span style="color:rgba(215,231,247,.9)">SENTINEL / JUATS</span></div>
+      <div class="tag">SIMULATED DEMO</div>
+    </div>
+
+    <div class="bootBody">
+      <div class="ringWrap">
+        <div class="ring" aria-hidden="true"></div>
+        <div class="ringText">
+          <div>
+            <b>SENTINEL</b><br/>
+            JUATS<br/>
+            <span style="color:rgba(127,162,193,.95); font-size:11px;">initializing</span>
+          </div>
+        </div>
+        <div class="bootPulse">
+          Authenticating modules<span class="dots"></span>
+        </div>
+      </div>
+
+      <div class="bootCopy">
+        <h1>Program Name: <span style="color:rgba(77,171,247,.95)">SENTINEL</span></h1>
+        <div class="sub"><b>Joint Unmanned Aerial Operations Tracking System (JUATS)</b></div>
+
+        <p>
+          SENTINEL is a mission-critical command and control software platform developed to provide real-time situational
+          awareness, telemetry aggregation, and operational oversight of unmanned aerial systems (UAS) operating in
+          contested and denied environments.
+        </p>
+        <p>
+          The system is designed to support joint and coalition forces conducting intelligence, surveillance,
+          reconnaissance, and strike operations across multiple theaters of operation.
+        </p>
+
+        <div class="meta">
+          <span class="pill">MODE: OFFLINE SIM</span>
+          <span class="pill">DATA: SYNTHETIC</span>
+          <span class="pill">BUILD: 0.9.7-demo</span>
+          <span class="pill">INTEGRITY: PASS</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="secureBanner">
+      <div class="secureLeft">
+        <span class="lock"></span>
+        <span><b>SECURE BANNER:</b> Authorized access only • Click to enter</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+        <span class="enterHint">Press <b>Enter</b> or click the button</span>
+        <button class="enterBtn" id="enterBtn">CLICK TO ENTER</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MISSION LOG MODAL (Popup) -->
+<div id="logModal" aria-hidden="true">
+  <div class="modalCard" role="dialog" aria-modal="true" aria-label="Mission Log">
+    <div class="modalHeader">
+      <div class="modalTitle">
+        <span class="dot"></span>
+        <span>Mission Log • SENTINEL / JUATS</span>
+      </div>
+      <div class="modalActions">
+        <button class="modalBtn" id="copyLogBtn">Copy</button>
+        <button class="modalBtn" id="clearLogBtnModal">Clear</button>
+        <button class="modalBtn primary" id="closeLogBtn">Close</button>
+      </div>
+    </div>
+    <div class="modalBody" id="logModalBody"></div>
+    <div class="modalFooter">
+      <span>Tip: press <b>L</b> to open/close • press <b>Esc</b> to close</span>
+      <span id="logCount">0 entries</span>
+    </div>
+  </div>
+</div>
+
+<header>
+  <div class="brand">
+    <div style="width:10px;height:10px;border-radius:50%;background:var(--good);box-shadow:0 0 18px rgba(56,217,169,.55)"></div>
+    <div>SENTINEL</div>
+    <span class="badge">JUATS • SIMULATED</span>
+  </div>
+  <div class="right">
+    <span class="pill" id="clock">--:--:--</span>
+    <span class="pill">LINK: <span id="link" style="color:var(--good)">STABLE</span></span>
+    <span class="pill">AO: <span id="ao" style="color:var(--accent)">SECTOR-7</span></span>
+    <span class="pill">MAP: <span id="mapName" style="color:rgba(215,231,247,.9)">TERRAIN-RELIEF</span></span>
+  </div>
+</header>
+
+<main>
+  <!-- LEFT: Drone list -->
+  <section class="panel">
+    <h2>Assets</h2>
+    <div class="content" id="assetList"></div>
+    <div class="controls">
+      <button class="primary" id="addEventBtn">Inject Event</button>
+      <button id="shuffleBtn">Re-route</button>
+      <button id="pauseBtn">Pause</button>
+      <button id="openLogBtn">Mission Log</button>
+    </div>
+    <div class="footerNote">
+      UI-only simulation: basemap + positions/telemetry are procedurally generated.
+    </div>
+  </section>
+
+  <!-- CENTER: Map -->
+  <section class="panel mapWrap">
+    <h2>Live Ops Map</h2>
+    <div style="position:relative; flex:1">
+      <canvas id="map"></canvas>
+
+      <div class="mapOverlay">
+        <div class="hud">
+          <div class="row">
+            <div class="kv"><span class="k">MISSION</span><span class="v" id="missionName">WATCHTOWER</span></div>
+            <div class="kv"><span class="k">PHASE</span><span class="v" id="phase">INGRESS</span></div>
+            <div class="kv"><span class="k">THREAT</span><span class="v" id="threat" style="color:var(--warn)">ELEVATED</span></div>
+          </div>
+          <div style="height:8px"></div>
+          <div class="row small">
+            <span>Basemap: relief</span><span>•</span>
+            <span>Grid: lat/long</span><span>•</span>
+            <span>Latency: <span id="lat">18ms</span></span>
+          </div>
+        </div>
+
+        <div class="hud">
+          <div class="kv"><span class="k">SELECTED</span><span class="v" id="selName">—</span></div>
+          <div style="height:8px"></div>
+          <div class="split">
+            <div class="kv"><span class="k">LAT/LON</span><span class="v" id="selLatLon">—</span></div>
+            <div class="kv"><span class="k">SPD</span><span class="v" id="selSpd">—</span></div>
+            <div class="kv"><span class="k">ALT</span><span class="v" id="selAlt">—</span></div>
+            <div class="kv"><span class="k">BAT</span><span class="v" id="selBat">—</span></div>
+            <div class="kv"><span class="k">DMG</span><span class="v" id="selDmg">—</span></div>
+            <div class="kv"><span class="k">AMMO</span><span class="v" id="selAmmo">—</span></div>
+            <div class="kv"><span class="k">RCKT</span><span class="v" id="selRockets">—</span></div>
+          </div>
+          <div style="height:8px"></div>
+          <div class="small" id="selTask">Task: —</div>
+          <div class="small" style="margin-top:6px; opacity:.85">Tip: click an asset (left) or click a marker on the map.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RIGHT: Detail -->
+  <section class="panel">
+    <h2>Intel / Status</h2>
+
+    <div class="sectionTitle">Asset Detail</div>
+    <div class="content" id="detail" style="max-height: 62%; flex: 0 0 auto; overflow:auto;">
+      <div style="font-family:var(--mono); color:rgba(127,162,193,.95);">
+        Select an asset to view telemetry.
+      </div>
+    </div>
+
+    <div class="controls" style="flex: 0 0 auto;">
+      <button id="repairBtn">Field Repair (sim)</button>
+      <button id="resupplyBtn">Resupply (sim)</button>
+      <button id="resetBtn">Reset Loadout (sim)</button>
+      <button id="regenMapBtn">New Region</button>
+      <button id="toggleNoiseBtn">Cinematic</button>
+    </div>
+
+    <div class="footerNote">
+      Mission Log moved to popup window for easier reading.
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  // ----- Utilities -----
+  const $ = (id) => document.getElementById(id);
+  const clamp = (n,min,max)=>Math.max(min,Math.min(max,n));
+  const rand = (a,b)=>a+Math.random()*(b-a);
+  const pick = (arr)=>arr[Math.floor(Math.random()*arr.length)];
+  const pad2 = (n)=>String(n).padStart(2,"0");
+
+
+  // ---- Splash -> Boot sequence ----
+  const splash = $("splash");
+  const boot = $("boot");
+
+  // Boot should NOT be visible until splash finishes
+  if (boot) boot.style.display = "none";
+
+  function startBootAfterSplash() {
+    if (!splash) {
+      if (boot) boot.style.display = "flex";
+      return;
+    }
+
+    // Show splash briefly, then fade out
+    const SPLASH_HOLD_MS = 4000;
+    const SPLASH_FADE_MS = 1200;
+
+    setTimeout(() => {
+      splash.classList.add("fadeOut");
+
+      setTimeout(() => {
+        splash.remove();
+        if (boot) boot.style.display = "flex";
+      }, SPLASH_FADE_MS + 50);
+    }, SPLASH_HOLD_MS);
+  }
+
+  // Start the sequence once DOM is ready
+  startBootAfterSplash();
+
+
+  // ----- Boot overlay behavior -----
+  function hideBoot(){
+    const boot = $("boot");
+    if(!boot) return;
+    boot.classList.add("bootFadeOut");
+    setTimeout(()=> boot.remove(), 620);
+  }
+  $("enterBtn").addEventListener("click", hideBoot);
+  document.querySelector(".secureBanner").addEventListener("click", (e)=>{
+    if(e.target && e.target.id === "enterBtn") return;
+    hideBoot();
+  });
+  
+  window.addEventListener("keydown", (e)=>{
+  // Don't allow Enter to dismiss boot while splash is still showing
+  if (e.key === "Enter" && !document.getElementById("splash") && $("boot")) {
+    hideBoot();
+  }
+  });
+
+  //window.addEventListener("keydown", (e)=>{
+  //  if(e.key === "Enter" && $("boot")) hideBoot();
+  //});
+
+  // ----- Mission Log Modal controls -----
+  const logModal = $("logModal");
+  const logModalBody = $("logModalBody");
+  const logCount = $("logCount");
+
+  function openLog(){
+    logModal.classList.add("show");
+    logModal.setAttribute("aria-hidden","false");
+    // focus close button for accessibility
+    $("closeLogBtn").focus();
+  }
+  function closeLog(){
+    logModal.classList.remove("show");
+    logModal.setAttribute("aria-hidden","true");
+  }
+  $("openLogBtn").addEventListener("click", openLog);
+  $("closeLogBtn").addEventListener("click", closeLog);
+  // click outside to close
+  logModal.addEventListener("click", (e)=>{
+    if(e.target === logModal) closeLog();
+  });
+  window.addEventListener("keydown", (e)=>{
+    if(e.key === "Escape") closeLog();
+    if(e.key.toLowerCase() === "l") {
+      if(logModal.classList.contains("show")) closeLog();
+      else openLog();
+    }
+  });
+
+  $("copyLogBtn").addEventListener("click", async ()=>{
+    const text = Array.from(logModalBody.querySelectorAll(".logLine")).map(line=>{
+      const meta = line.querySelector(".logMeta")?.innerText?.replace(/\s+/g," ").trim() || "";
+      const msg = line.querySelector("div:last-child")?.innerText?.trim() || "";
+      return meta + " — " + msg;
+    }).join("\n");
+    try{
+      await navigator.clipboard.writeText(text);
+      toast("SYS", "Mission log copied to clipboard");
+    }catch{
+      toast("SYS", "Clipboard blocked by browser");
+    }
+  });
+
+  $("clearLogBtnModal").addEventListener("click", ()=>{
+    logModalBody.innerHTML = "";
+    updateLogCount();
+    toast("SYS", "Log cleared");
+  });
+
+  // Small toast into log (visual feedback) without needing the old inline panel
+  function toast(src,msg){
+    log(src, msg);
+  }
+
+  function updateLogCount(){
+    const n = logModalBody.children.length;
+    logCount.textContent = `${n} entr${n===1?"y":"ies"}`;
+  }
+
+  // Deterministic PRNG (mulberry32)
+  function mulberry32(seed){
+    return function(){
+      let t = seed += 0x6D2B79F5;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    }
+  }
+  const smooth = (t)=>t*t*(3-2*t);
+  const lerp = (a,b,t)=>a+(b-a)*t;
+
+  // Value noise (coordinate-hashed)
+  function valueNoise2D(x,y,grid, rng){
+    const xi = Math.floor(x/grid);
+    const yi = Math.floor(y/grid);
+    const xf = (x/grid) - xi;
+    const yf = (y/grid) - yi;
+
+    function h(ix,iy){
+      const s = (ix*374761393 + iy*668265263) ^ 0x9E3779B9;
+      const rr = mulberry32((s>>>0) ^ (rng._seed>>>0));
+      return rr();
+    }
+    const v00 = h(xi,yi);
+    const v10 = h(xi+1,yi);
+    const v01 = h(xi,yi+1);
+    const v11 = h(xi+1,yi+1);
+
+    const u = smooth(xf), v = smooth(yf);
+    return lerp( lerp(v00,v10,u), lerp(v01,v11,u), v );
+  }
+
+  function fbm(x,y, rng){
+    let v = 0, amp = 0.55, freq = 1.0;
+    for(let i=0;i<5;i++){
+      v += amp * valueNoise2D(x*freq, y*freq, 85, rng);
+      amp *= 0.55;
+      freq *= 1.9;
+    }
+    return v;
+  }
+
+  // Point-in-polygon (ray casting) for normalized coords
+  function pointInPoly(px, py, poly){
+    let inside = false;
+    for(let i=0, j=poly.length-1; i<poly.length; j=i++){
+      const xi = poly[i].x, yi = poly[i].y;
+      const xj = poly[j].x, yj = poly[j].y;
+      const intersect = ((yi > py) !== (yj > py)) &&
+        (px < (xj - xi) * (py - yi) / ((yj - yi) || 1e-9) + xi);
+      if(intersect) inside = !inside;
+    }
+    return inside;
+  }
+
+  // ----- State -----
+  let paused = false;
+  let cinematic = false;
+  let selectedId = null;
+
+  // Fake region bounds (plausible numbers; change freely)
+  let region = {
+    name: "SECTOR-7",
+    latMin: 33.20,
+    latMax: 33.95,
+    lonMin: 42.10,
+    lonMax: 43.05,
+    seed: (Date.now() & 0xffffffff) >>> 0
+  };
+
+  // Geofence polygon (normalized coords). Used for alerts + drawn on map.
+  const geofence = {
+    name: "GEOFENCE-RED",
+    poly: [
+      {x:0.60, y:0.20},
+      {x:0.88, y:0.24},
+      {x:0.82, y:0.48},
+      {x:0.62, y:0.44}
+    ]
+  };
+
+  const phases = ["INGRESS","ON-STATION","EGRESS","RTB","HANDOFF"];
+  const tasks = [
+    "ISR sweep (sim)", "Route patrol (sim)", "Signal relay (sim)",
+    "Perimeter scan (sim)", "AO awareness (sim)"
+  ];
+  const callsigns = ["VIPER","FALCON","GHOST","RAVEN","NOMAD","SENTINEL","ECHO","ORION"];
+  const models = ["RQ-27 SIM","MQ-12 SIM","VX-3 SIM","SR-9 SIM"];
+  const statusPool = ["OK","OK","OK","WARNING","OK","OK","CRITICAL"]; // weighted
+
+  function makeDrone(i){
+    return {
+      id: "D" + (100+i),
+      name: `${pick(callsigns)}-${pad2(i+1)}`,
+      model: pick(models),
+      status: pick(statusPool),
+
+      // normalized map coords 0..1
+      x: rand(0.15,0.85),
+      y: rand(0.20,0.80),
+      vx: rand(-0.0012,0.0012),
+      vy: rand(-0.0012,0.0012),
+
+      spd: rand(38,92),    // km/h (sim)
+      alt: rand(120,980),  // m (sim)
+      bat: rand(52,98),    // %
+
+      // simulated fields
+      damage: rand(0, 18),                 // % (sim)
+      ammo: Math.floor(rand(120, 260)),    // rounds (sim)
+      ammoMax: 260,
+      rockets: Math.floor(rand(2, 8)),     // (sim)
+      rocketsMax: 8,
+
+      task: pick(tasks),
+      trail: [],
+      lastMarker: null,     // for hit-testing
+      inGeofence: false,    // for geofence transitions
+      geoFlashUntil: 0      // for visual flash effect
+    };
+  }
+
+  const drones = Array.from({length:6}).map((_,i)=>makeDrone(i));
+  drones.forEach(d => d.inGeofence = pointInPoly(d.x, d.y, geofence.poly));
+
+  // Map helpers
+  function xyToLatLon(xNorm,yNorm){
+    const lat = lerp(region.latMax, region.latMin, yNorm);
+    const lon = lerp(region.lonMin, region.lonMax, xNorm);
+    return {lat, lon};
+  }
+
+  // ----- UI: Clock / HUD -----
+  function tickClock(){
+    const d = new Date();
+    $("clock").textContent = `${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
+  }
+  setInterval(tickClock, 250); tickClock();
+
+  let missionPhaseIndex = 0;
+  $("missionName").textContent = "WATCHTOWER";
+  $("ao").textContent = region.name;
+
+  function setThreat(level){
+    const el = $("threat");
+    el.textContent = level;
+    el.style.color = (level==="LOW") ? "var(--good)" : (level==="ELEVATED") ? "var(--warn)" : "var(--bad)";
+  }
+  setThreat("ELEVATED");
+
+  // ----- Mission log (now writes into modal body) -----
+  function ts(){
+    const d = new Date();
+    return `${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
+  }
+  function log(src, msg){
+    const line = document.createElement("div");
+    line.className = "logLine";
+    line.innerHTML = `
+      <div class="logMeta"><span>${ts()} • ${src}</span><span>${region.name}</span></div>
+      <div>${msg}</div>
+    `;
+    logModalBody.prepend(line);
+    while (logModalBody.children.length > 150) logModalBody.removeChild(logModalBody.lastChild);
+    updateLogCount();
+  }
+
+  function injectEvent(){
+    const kinds = [
+      () => {
+        missionPhaseIndex = (missionPhaseIndex + 1) % phases.length;
+        $("phase").textContent = phases[missionPhaseIndex];
+        log("C2", `Mission phase updated → <b>${phases[missionPhaseIndex]}</b>`);
+      },
+      () => {
+        const d = pick(drones);
+        d.status = pick(["OK","WARNING","CRITICAL"]);
+        log("TELEM", `${d.name} health update → <b>${d.status}</b>`);
+      },
+      () => {
+        const d = pick(drones);
+        d.task = pick(tasks);
+        log("TASK", `${d.name} tasking changed → <b>${d.task}</b>`);
+      },
+      () => {
+        const levels = ["LOW","ELEVATED","HIGH"];
+        setThreat(pick(levels));
+        log("INTEL", `Threat posture changed`);
+      },
+      () => {
+        $("link").textContent = pick(["STABLE","DEGRADED","JAMMED (sim)"]);
+        $("link").style.color = $("link").textContent.includes("STABLE") ? "var(--good)" :
+                                $("link").textContent.includes("DEGRADED") ? "var(--warn)" : "var(--bad)";
+        log("LINK", `Comms link state → <b>${$("link").textContent}</b>`);
+      },
+    ];
+    pick(kinds)();
+    renderAssets();
+    renderSelected();
+    renderDetail();
+  }
+
+  // ----- Assets list -----
+  function renderAssets(){
+    const wrap = $("assetList");
+    wrap.innerHTML = "";
+    drones.forEach(d => {
+      const row = document.createElement("div");
+      row.className = "droneRow" + (d.id===selectedId ? " selected" : "");
+      row.onclick = () => {
+        selectedId = d.id;
+        log("OPCTR", `${d.name} selected`);
+        renderAssets();
+        renderSelected();
+        renderDetail();
+      };
+
+      const left = document.createElement("div");
+      left.className = "leftInfo";
+      left.innerHTML = `
+        <div class="name">${d.name} <span style="color:rgba(127,162,193,.9)">(${d.id})</span></div>
+        <div class="sub">${d.model} • Task: ${d.task}</div>
+      `;
+
+      const st = document.createElement("div");
+      st.className = "status " + (d.status==="OK" ? "ok" : d.status==="WARNING" ? "warning" : "critical");
+      st.textContent = d.status;
+
+      row.appendChild(left);
+      row.appendChild(st);
+      wrap.appendChild(row);
+    });
+  }
+
+  // ----- Selected HUD -----
+  function renderSelected(){
+    const d = drones.find(x=>x.id===selectedId);
+    if(!d){
+      $("selName").textContent = "—";
+      $("selLatLon").textContent = "—";
+      $("selSpd").textContent = "—";
+      $("selAlt").textContent = "—";
+      $("selBat").textContent = "—";
+      $("selDmg").textContent = "—";
+      $("selAmmo").textContent = "—";
+      $("selRockets").textContent = "—";
+      $("selTask").textContent = "Task: —";
+      return;
+    }
+    const ll = xyToLatLon(d.x,d.y);
+    $("selName").textContent = `${d.name} (${d.id})`;
+    $("selLatLon").textContent = `${ll.lat.toFixed(4)}°, ${ll.lon.toFixed(4)}°`;
+    $("selSpd").textContent = `${Math.round(d.spd)} km/h`;
+    $("selAlt").textContent = `${Math.round(d.alt)} m`;
+    $("selBat").textContent = `${Math.round(d.bat)}%`;
+    $("selDmg").textContent = `${Math.round(d.damage)}%`;
+    $("selAmmo").textContent = `${d.ammo}/${d.ammoMax}`;
+    $("selRockets").textContent = `${d.rockets}/${d.rocketsMax}`;
+    $("selTask").textContent = `Task: ${d.task}`;
+  }
+
+  // ----- Asset Detail -----
+  function pct(n){ return Math.round(n); }
+  function barColor(kind, value){
+    if(kind === "battery"){
+      if(value > 40) return "rgba(56,217,169,.95)";
+      if(value > 18) return "rgba(255,212,59,.95)";
+      return "rgba(255,107,107,.95)";
+    }
+    if(kind === "damage"){
+      if(value < 25) return "rgba(56,217,169,.95)";
+      if(value < 55) return "rgba(255,212,59,.95)";
+      return "rgba(255,107,107,.95)";
+    }
+    if(value > 35) return "rgba(56,217,169,.95)";
+    if(value > 15) return "rgba(255,212,59,.95)";
+    return "rgba(255,107,107,.95)";
+  }
+
+  function renderDetail(){
+    const wrap = $("detail");
+    const d = drones.find(x=>x.id===selectedId);
+    if(!d){
+      wrap.innerHTML = `<div style="font-family:var(--mono); color:rgba(127,162,193,.95);">Select an asset to view telemetry.</div>`;
+      return;
+    }
+
+    const ammoPct = (d.ammo / d.ammoMax) * 100;
+    const rocketPct = (d.rockets / d.rocketsMax) * 100;
+    const ll = xyToLatLon(d.x,d.y);
+
+    const geoStatus = d.inGeofence
+      ? `<span style="color:rgba(255,107,107,.95)">INSIDE ${geofence.name}</span>`
+      : `<span style="color:rgba(56,217,169,.95)">CLEAR</span>`;
+
+    wrap.innerHTML = `
+      <div style="margin-bottom:12px;">
+        <div style="font-family:var(--mono); font-size:13px; letter-spacing:.6px;">
+          ${d.name} <span style="color:rgba(127,162,193,.9)">(${d.id})</span>
+        </div>
+        <div style="color:rgba(127,162,193,.95); font-size:12px;">
+          ${d.model} • <span style="opacity:.9">${d.status}</span> • ${d.task}
+        </div>
+        <div style="margin-top:6px; font-family:var(--mono); font-size:11px; color:rgba(127,162,193,.9);">
+          Last fix: ${ll.lat.toFixed(4)}°, ${ll.lon.toFixed(4)}°
+        </div>
+        <div style="margin-top:6px; font-family:var(--mono); font-size:11px; color:rgba(127,162,193,.9);">
+          Geofence: ${geoStatus}
+        </div>
+      </div>
+
+      <div class="statRow">
+        <div class="statTop"><span>Battery</span><span>${pct(d.bat)}%</span></div>
+        <div class="bar"><div class="fill" style="width:${clamp(d.bat,0,100)}%; background:${barColor("battery", d.bat)}"></div></div>
+        <div class="statHint">Estimated remaining: ${Math.max(0, Math.round(d.bat/2))} min (sim)</div>
+      </div>
+
+      <div class="statRow">
+        <div class="statTop"><span>Damage Level</span><span>${pct(d.damage)}%</span></div>
+        <div class="bar"><div class="fill" style="width:${clamp(d.damage,0,100)}%; background:${barColor("damage", d.damage)}"></div></div>
+        <div class="statHint">${d.damage < 25 ? "Minor wear" : d.damage < 55 ? "Moderate damage" : "Severe damage"} (sim)</div>
+      </div>
+
+      <div class="statRow">
+        <div class="statTop"><span>Ammo Left</span><span>${d.ammo}/${d.ammoMax}</span></div>
+        <div class="bar"><div class="fill" style="width:${clamp(ammoPct,0,100)}%; background:${barColor("ammo", ammoPct)}"></div></div>
+        <div class="statHint">Consumption is random for demo realism.</div>
+      </div>
+
+      <div class="statRow" style="margin-bottom:0;">
+        <div class="statTop"><span>Rockets Remaining</span><span>${d.rockets}/${d.rocketsMax}</span></div>
+        <div class="bar"><div class="fill" style="width:${clamp(rocketPct,0,100)}%; background:${barColor("rockets", rocketPct)}"></div></div>
+        <div class="statHint">Simulated inventory only.</div>
+      </div>
+    `;
+  }
+
+  // ----- Map drawing -----
+  const canvas = $("map");
+  const ctx = canvas.getContext("2d");
+
+  let mapBmp = null;
+
+  function buildBasemap(){
+    const rect = canvas.getBoundingClientRect();
+    const w = Math.max(420, Math.floor(rect.width));
+    const h = Math.max(320, Math.floor(rect.height));
+
+    const off = document.createElement("canvas");
+    off.width = w; off.height = h;
+    const g = off.getContext("2d");
+
+    const rng = mulberry32(region.seed);
+    rng._seed = region.seed;
+
+    const img = g.createImageData(w,h);
+    const data = img.data;
+    const heights = new Float32Array(w*h);
+
+    for(let y=0;y<h;y++){
+      for(let x=0;x<w;x++){
+        const nx = x/w;
+        const ny = y/h;
+
+        let e = fbm(x, y, rng);
+
+        const ridge = Math.exp(-Math.pow((nx*1.05 + ny*0.55 - 0.85),2) / 0.018);
+        e += ridge * 0.55;
+
+        const coast = clamp((nx - 0.10) / 0.35, 0, 1);
+        e = e*0.78 + coast*0.22;
+
+        heights[y*w + x] = e;
+      }
+    }
+
+    for(let y=0;y<h;y++){
+      for(let x=0;x<w;x++){
+        const i = y*w + x;
+        const e = heights[i];
+
+        const ex = heights[y*w + clamp(x+1,0,w-1)] - heights[y*w + clamp(x-1,0,w-1)];
+        const ey = heights[clamp(y+1,0,h-1)*w + x] - heights[clamp(y-1,0,h-1)*w + x];
+        const shade = clamp(0.55 + (ex*0.9 - ey*0.9), 0, 1);
+
+        let r,gc,b;
+        if(e < 0.38){
+          const t = clamp((e-0.18)/0.20,0,1);
+          r = lerp(12, 24, t);
+          gc = lerp(38, 58, t);
+          b = lerp(64, 92, t);
+        } else if(e < 0.52){
+          const t = (e-0.38)/0.14;
+          r = lerp(62, 96, t);
+          gc = lerp(72, 98, t);
+          b = lerp(56, 72, t);
+        } else if(e < 0.72){
+          const t = (e-0.52)/0.20;
+          r = lerp(36, 58, t);
+          gc = lerp(72, 106, t);
+          b = lerp(44, 66, t);
+        } else {
+          const t = clamp((e-0.72)/0.28,0,1);
+          r = lerp(78, 128, t);
+          gc = lerp(88, 132, t);
+          b = lerp(92, 150, t);
+        }
+
+        const tint = 0.88;
+        r = r * (0.60 + shade*0.55) * tint;
+        gc = gc * (0.60 + shade*0.55) * tint;
+        b = b * (0.60 + shade*0.55) * tint;
+
+        const di = i*4;
+        data[di+0] = clamp(r,0,255);
+        data[di+1] = clamp(gc,0,255);
+        data[di+2] = clamp(b,0,255);
+        data[di+3] = 255;
+      }
+    }
+
+    g.putImageData(img,0,0);
+
+    g.font = "16px " + getComputedStyle(document.body).fontFamily;
+    g.fillStyle = "rgba(215,231,247,.10)";
+    g.fillText(region.name + " / AO", 16, h-18);
+
+    const vg = g.createRadialGradient(w*0.5,h*0.45, Math.min(w,h)*0.15, w*0.5,h*0.45, Math.max(w,h)*0.75);
+    vg.addColorStop(0,"rgba(0,0,0,0)");
+    vg.addColorStop(1,"rgba(0,0,0,0.55)");
+    g.fillStyle = vg;
+    g.fillRect(0,0,w,h);
+
+    mapBmp = off;
+  }
+
+  function drawLatLonGrid(w,h){
+    ctx.save();
+    ctx.globalAlpha = cinematic ? 0.40 : 0.30;
+    ctx.lineWidth = 1;
+
+    const latLines = 6;
+    const lonLines = 6;
+
+    ctx.strokeStyle = "rgba(215,231,247,.10)";
+    ctx.fillStyle   = "rgba(215,231,247,.42)";
+    ctx.font = "11px var(--mono)";
+
+    for(let i=0;i<=latLines;i++){
+      const t = i/latLines;
+      const y = t*h;
+      ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke();
+      const lat = lerp(region.latMax, region.latMin, t);
+      ctx.fillText(lat.toFixed(2) + "°", 10, y-4);
+    }
+    for(let i=0;i<=lonLines;i++){
+      const t = i/lonLines;
+      const x = t*w;
+      ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke();
+      const lon = lerp(region.lonMin, region.lonMax, t);
+      ctx.fillText(lon.toFixed(2) + "°", x+6, 16);
+    }
+    ctx.restore();
+  }
+
+  function drawGeofence(w,h){
+    ctx.save();
+    ctx.globalAlpha = 0.95;
+
+    ctx.beginPath();
+    geofence.poly.forEach((p,i)=>{
+      const x=p.x*w, y=p.y*h;
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    });
+    ctx.closePath();
+
+    ctx.fillStyle = "rgba(255,107,107,.06)";
+    ctx.fill();
+
+    ctx.setLineDash([10,8]);
+    ctx.strokeStyle = "rgba(255,107,107,.32)";
+    ctx.lineWidth = 2.2;
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.font = "12px var(--mono)";
+    ctx.fillStyle = "rgba(255,107,107,.78)";
+    const p0 = geofence.poly[0];
+    ctx.fillText(`${geofence.name} (SIM)`, p0.x*w + 10, p0.y*h - 10);
+
+    ctx.restore();
+  }
+
+  function drawDrone(d,w,h){
+    const x=d.x*w, y=d.y*h;
+    d.lastMarker = {x,y,r: (d.id===selectedId ? 10 : 8)};
+
+    ctx.save();
+    ctx.globalAlpha = 0.9;
+    ctx.strokeStyle = "rgba(77,171,247,.22)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    d.trail.forEach((t,i)=>{
+      const tx=t.x*w, ty=t.y*h;
+      if(i===0) ctx.moveTo(tx,ty); else ctx.lineTo(tx,ty);
+    });
+    ctx.stroke();
+    ctx.restore();
+
+    const isSel = d.id===selectedId;
+    const col = d.status==="OK" ? "rgba(56,217,169,.95)" :
+                d.status==="WARNING" ? "rgba(255,212,59,.95)" :
+                "rgba(255,107,107,.95)";
+
+    const now = Date.now();
+    const flash = now < d.geoFlashUntil;
+
+    ctx.save();
+
+    if(flash){
+      ctx.globalAlpha = 0.65;
+      ctx.strokeStyle = "rgba(255,107,107,.95)";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(x,y,14,0,Math.PI*2);
+      ctx.stroke();
+      ctx.globalAlpha = 1.0;
+    }
+
+    ctx.shadowBlur = isSel ? 18 : 10;
+    ctx.shadowColor = col;
+    ctx.fillStyle = col;
+    ctx.beginPath();
+    ctx.arc(x,y, isSel ? 5 : 4, 0, Math.PI*2);
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = "rgba(215,231,247,.55)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x,y);
+    ctx.lineTo(x + d.vx*42000, y + d.vy*42000);
+    ctx.stroke();
+
+    const ll = xyToLatLon(d.x,d.y);
+    ctx.font = "12px var(--mono)";
+    ctx.fillStyle = "rgba(215,231,247,.88)";
+    ctx.fillText(d.name, x+10, y-12);
+    ctx.font = "11px var(--mono)";
+    ctx.fillStyle = "rgba(127,162,193,.9)";
+    ctx.fillText(`${ll.lat.toFixed(3)}, ${ll.lon.toFixed(3)}`, x+10, y+6);
+
+    if(d.inGeofence){
+      ctx.font = "11px var(--mono)";
+      ctx.fillStyle = "rgba(255,107,107,.88)";
+      ctx.fillText("GEOFENCE", x+10, y+20);
+    }
+
+    ctx.restore();
+  }
+
+  function noiseOverlay(w,h){
+    if(!cinematic) return;
+    ctx.save();
+    ctx.globalAlpha = 0.06;
+    for(let i=0;i<220;i++){
+      const x = Math.random()*w;
+      const y = Math.random()*h;
+      const s = Math.random()*2.2;
+      ctx.fillStyle = "rgba(215,231,247,.9)";
+      ctx.fillRect(x,y,s,s);
+    }
+    ctx.globalAlpha = 0.10;
+    ctx.fillStyle = "rgba(77,171,247,.28)";
+    const y = (Date.now()/8) % h;
+    ctx.fillRect(0,y,w,2);
+    ctx.restore();
+  }
+
+  function resize(){
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.floor(rect.width * dpr);
+    canvas.height = Math.floor(rect.height * dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    buildBasemap();
+  }
+  window.addEventListener("resize", resize);
+
+  // Click-to-select on map
+  canvas.addEventListener("click", (ev) => {
+    const rect = canvas.getBoundingClientRect();
+    const mx = ev.clientX - rect.left;
+    const my = ev.clientY - rect.top;
+
+    let best = null;
+    let bestDist = Infinity;
+    for(const d of drones){
+      if(!d.lastMarker) continue;
+      const dx = mx - d.lastMarker.x;
+      const dy = my - d.lastMarker.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if(dist < d.lastMarker.r && dist < bestDist){
+        best = d; bestDist = dist;
+      }
+    }
+    if(best){
+      selectedId = best.id;
+      log("OPCTR", `${best.name} selected (map)`);
+      renderAssets();
+      renderSelected();
+      renderDetail();
+    }
+  });
+
+  // ----- Geofence monitoring -----
+  function checkGeofenceTransitions(d){
+    const inside = pointInPoly(d.x, d.y, geofence.poly);
+    if(inside !== d.inGeofence){
+      d.inGeofence = inside;
+      d.geoFlashUntil = Date.now() + 2000;
+
+      if(inside){
+        log("GEOFENCE", `<b>${d.name}</b> ENTERED ${geofence.name} (sim)`);
+        if($("threat").textContent !== "HIGH") setThreat("HIGH");
+        if($("link").textContent.includes("STABLE") && Math.random() < 0.25){
+          $("link").textContent = "DEGRADED";
+          $("link").style.color = "var(--warn)";
+        }
+      } else {
+        log("GEOFENCE", `<b>${d.name}</b> EXITED ${geofence.name} (sim)`);
+        if(Math.random() < 0.35) setThreat("ELEVATED");
+      }
+    }
+  }
+
+  // ----- Simulation loop -----
+  function update(){
+    if(paused) return;
+
+    $("lat").textContent = `${Math.round(rand(9,38))}ms`;
+
+    drones.forEach(d=>{
+      d.trail.push({x:d.x,y:d.y});
+      if(d.trail.length>24) d.trail.shift();
+
+      d.vx += rand(-0.00015, 0.00015);
+      d.vy += rand(-0.00015, 0.00015);
+      d.vx = clamp(d.vx, -0.0022, 0.0022);
+      d.vy = clamp(d.vy, -0.0022, 0.0022);
+
+      d.x += d.vx;
+      d.y += d.vy;
+
+      if(d.x<0.06 || d.x>0.94) d.vx *= -1;
+      if(d.y<0.08 || d.y>0.92) d.vy *= -1;
+      d.x = clamp(d.x,0.06,0.94);
+      d.y = clamp(d.y,0.08,0.92);
+
+      d.spd = clamp(d.spd + rand(-2.5,2.5), 20, 140);
+      d.alt = clamp(d.alt + rand(-22,22), 40, 1500);
+      d.bat = clamp(d.bat - rand(0.01,0.06), 0, 100);
+
+      if(Math.random() < (cinematic ? 0.020 : 0.008)){
+        d.ammo = Math.max(0, d.ammo - Math.floor(rand(1, 6)));
+      }
+      if(Math.random() < (cinematic ? 0.010 : 0.003)){
+        d.rockets = Math.max(0, d.rockets - 1);
+      }
+
+      if(Math.random() < (cinematic ? 0.008 : 0.002)){
+        d.damage = clamp(d.damage + rand(2, 8), 0, 100);
+        if(Math.random() < 0.5) log("MAINT", `${d.name} reported damage increase (sim)`);
+      }
+
+      if(Math.random() < (cinematic ? 0.020 : 0.006)){
+        d.status = pick(["OK","OK","OK","WARNING","OK","OK","CRITICAL"]);
+        if(Math.random()<0.35) log("TELEM", `${d.name} health → <b>${d.status}</b>`);
+      }
+
+      if(d.bat < 22 && d.status==="OK") d.status="WARNING";
+      if(d.bat < 10) d.status="CRITICAL";
+      if(d.damage > 70) d.status="CRITICAL";
+
+      checkGeofenceTransitions(d);
+    });
+
+    renderSelected();
+    renderDetail();
+
+    if(cinematic && Math.random() < 0.03){
+      const d = pick(drones);
+      log("COMMS", `${d.name}: “Telemetry nominal. Continuing ${d.task}.” <span style="color:rgba(127,162,193,.85)">(sim)</span>`);
+    }
+  }
+
+  function draw(){
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width, h = rect.height;
+
+    if(mapBmp){
+      ctx.drawImage(mapBmp, 0, 0, w, h);
+    } else {
+      ctx.clearRect(0,0,w,h);
+    }
+
+    drawLatLonGrid(w,h);
+    drawGeofence(w,h);
+    drones.forEach(d => drawDrone(d,w,h));
+
+    ctx.save();
+    ctx.strokeStyle = "rgba(77,171,247,.25)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(10,10,w-20,h-20);
+    ctx.restore();
+
+    noiseOverlay(w,h);
+  }
+
+  function loop(){
+    update();
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  // ----- Controls -----
+  $("addEventBtn").onclick = injectEvent;
+
+  $("shuffleBtn").onclick = () => {
+    drones.forEach(d=>{
+      d.vx = rand(-0.002,0.002);
+      d.vy = rand(-0.002,0.002);
+      d.task = pick(tasks);
+      d.trail = [];
+    });
+    log("C2", "Re-route issued to all assets (sim)");
+    renderAssets();
+    renderSelected();
+    renderDetail();
+  };
+
+  $("pauseBtn").onclick = () => {
+    paused = !paused;
+    $("pauseBtn").textContent = paused ? "Resume" : "Pause";
+    log("SYS", paused ? "Simulation paused" : "Simulation resumed");
+  };
+
+  $("toggleNoiseBtn").onclick = () => {
+    cinematic = !cinematic;
+    $("toggleNoiseBtn").textContent = cinematic ? "Cinematic: ON" : "Cinematic";
+    log("SYS", cinematic ? "Cinematic mode enabled" : "Cinematic mode disabled");
+  };
+
+  $("regenMapBtn").onclick = () => {
+    region.seed = ((Date.now() ^ (Math.random()*1e9)) >>> 0);
+    region.latMin = 33.00 + Math.random()*0.8;
+    region.latMax = region.latMin + (0.55 + Math.random()*0.35);
+    region.lonMin = 41.80 + Math.random()*1.0;
+    region.lonMax = region.lonMin + (0.60 + Math.random()*0.35);
+    region.name = "SECTOR-" + Math.floor(3 + Math.random()*9);
+    $("ao").textContent = region.name;
+
+    drones.forEach(d => d.inGeofence = pointInPoly(d.x, d.y, geofence.poly));
+
+    buildBasemap();
+    log("SYS", `Basemap regenerated → <b>${region.name}</b> (seed ${region.seed})`);
+    renderSelected();
+    renderDetail();
+  };
+
+  $("repairBtn").onclick = () => {
+    const d = drones.find(x=>x.id===selectedId);
+    if(!d) return;
+    const before = d.damage;
+    d.damage = clamp(d.damage - rand(10, 30), 0, 100);
+    log("MAINT", `${d.name} field repair applied (sim) • ${Math.round(before)}% → ${Math.round(d.damage)}%`);
+    renderAssets();
+    renderSelected();
+    renderDetail();
+  };
+
+  $("resupplyBtn").onclick = () => {
+    const d = drones.find(x=>x.id===selectedId);
+    if(!d) return;
+    const a0 = d.ammo, r0 = d.rockets;
+    d.ammo = clamp(d.ammo + Math.floor(rand(40, 90)), 0, d.ammoMax);
+    d.rockets = clamp(d.rockets + Math.floor(rand(1, 3)), 0, d.rocketsMax);
+    log("LOG", `${d.name} resupply completed (sim) • ammo ${a0}→${d.ammo}, rockets ${r0}→${d.rockets}`);
+    renderSelected();
+    renderDetail();
+  };
+
+  $("resetBtn").onclick = () => {
+    const d = drones.find(x=>x.id===selectedId);
+    if(!d) return;
+    d.ammo = d.ammoMax;
+    d.rockets = d.rocketsMax;
+    d.damage = rand(0, 12);
+    d.bat = clamp(d.bat, 40, 100);
+    d.status = "OK";
+    log("SYS", `${d.name} loadout reset (sim)`);
+    renderAssets();
+    renderSelected();
+    renderDetail();
+  };
+
+  // ----- init -----
+  function init(){
+    renderAssets();
+    selectedId = drones[0].id;
+    renderSelected();
+    renderDetail();
+    log("SYS", "SENTINEL JUATS initialized (sim)");
+    log("C2", "Mission WATCHTOWER active. Tracking assets (sim).");
+    resize();
+    loop();
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
