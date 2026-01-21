@@ -94,7 +94,7 @@ docker build -t sentinel:v1 .
 
 1. Download Zarf Binary
 	```bash
-	cd repo/DEMO-2/files
+	cd DEMO-2/files
 	```
 
 	```bash
