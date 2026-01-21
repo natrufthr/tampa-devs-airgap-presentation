@@ -1,0 +1,66 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: sentinel-2
+  namespace: argocd
+  labels:
+    zarf.dev/agent: ignore
+spec:
+  project: default
+  source:
+    # chart: keycloak
+    # targetRevision: 25.2.0
+    # repoURL: https://charts.bitnami.com/bitnami
+    repoURL: http://zarf-gitea-http.zarf.svc.cluster.local:3000/zarf-git-user/sentinel.git
+    targetRevision: v0.1.0
+    path: ./
+    helm:
+      values: |
+        replicaCount: 1
+
+        image:
+          repository: sentinel
+          tag: v1
+          pullPolicy: IfNotPresent
+          #repository: nginx
+          #tag: latest
+
+        imageCredentials:
+          enabled: true
+          registry: ###ZARF_REGISTRY###
+          username: "zarf-pull"
+          password: ###ZARF_REGISTRY_AUTH_PULL###
+          # email: ""
+
+        imagePullSecret:
+          name: private-registry
+
+        # Option 2: Reference existing imagePullSecrets
+        imagePullSecrets: []
+        # Example:
+        # imagePullSecrets:
+        #   - name: existing-secret
+
+        service:
+          type: ClusterIP
+          port: 80
+
+        ingress:
+          enabled: true
+          className: traefik
+          annotations: {}
+            # kubernetes.io/tls-acme: "true"
+          host: sentinel-2.tampa.devs
+          path: /
+          pathType: Prefix
+          tls: []
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: sentinel-2
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false

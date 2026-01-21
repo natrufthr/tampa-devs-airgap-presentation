@@ -1,0 +1,33 @@
+kind: ZarfPackageConfig
+metadata:
+  name: argocd
+  description: argocd-install
+  version: 0.0.1
+components:
+  - name: create-cert
+    required: true
+    actions:
+      # runs during "zarf package deploy"
+      onDeploy:
+        defaults:
+          dir: ""
+          env: []
+          maxRetries: 0
+          maxTotalSeconds: 300
+          mute: false
+          shell:
+            darwin: sh
+            linux: sh
+            windows: powershell
+        before:
+          - cmd: zarf tools kubectl create ns argocd
+  - name: argocd
+    required: true
+    charts:
+      - name: argo-cd
+        version: 9.1.6
+        namespace: argocd
+        url: https://argoproj.github.io/argo-helm
+        releaseName: argo-cd
+        valuesFiles:
+          - values.yaml
