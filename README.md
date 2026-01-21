@@ -105,13 +105,9 @@ docker build -t sentinel:v1 .
 	chmod +x zarf
 	```
 
-	```bash
-	sudo mv zarf /usr/local/bin/zarf
-	```
-
 2. Create and Save Sentinel Docker Image
 	```bash
-	cd repo/DEMO-2/DOCKER_IMAGE
+	cd DOCKER_IMAGE
 	```
 
 	```
