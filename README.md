@@ -119,8 +119,78 @@ docker build -t sentinel:v1 .
 	```
 3. Create Zarf Package
 	1. Init Package
+		```bash
+	cd ../zarf-packages
+	```
+	
+	```bash
+	../zarf tools download-init
+	```
 	2. Traefik Package
+	
+	```bash
+	cd traefik
+	```
+
+
+	```bash
+	ls
+	```
+
+	```bash
+	cat zarf.yaml
+	```
+
+
+	```bash
+	../../zarf dev find-images
+	```
+
+	```bash
+	../../zarf dev find-images --update
+	```
+
+	```bash
+	cat zarf.yaml
+	```
+
+	```bash
+	../../zarf package create ./
+	```
+
+
+	
 	3. Argocd App Package
+	
+	```bash
+	cd ../argocd
+	```
+	
+	```bash
+	ls
+	```
+
+	```bash
+	cat zarf.yaml
+	```
+
+
+	```bash
+	../../zarf dev find-images
+	```
+
+	```bash
+	../../zarf dev find-images --update
+	```
+
+	```bash
+	cat zarf.yaml
+	```
+
+	```bash
+	../../zarf package create ./
+	```
+
 	4. Sentinel AppSet Package
 #### Part B
 1. Move over Zarf Packages & Binary
