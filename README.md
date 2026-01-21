@@ -52,3 +52,67 @@ docker build -t sentinel:v1 .
 
 ##### Description:
 - Add ArgoCD + Git to show GitOps workflow using zarf
+
+##### Description: 
+- k3s cluster init w/zarf 
+- deploy Traefik 
+- Add Argocd
+- Push Sentinel Chart Up to Gitea
+- Deploy argocd appset 1 & 2 with zarf to show gitops
+##### Files: 
+- zarf binary
+- zarf init package yaml
+- zarf traefik package yaml
+- sentinel app docker image files
+- zarf sentinel package yaml
+- zarf argocd package yaml
+#### Part A
+1. Pull Git Repo w/ zarf yaml's
+	```bash
+	git clone https://github.com/natrufthr/tampa-devs-airgap-presentation.git
+	```
+	
+	```bash
+	mv tampa-devs-airgap-presentation repo
+	```
+1. Download Zarf Binary
+```bash
+cd repo/DEMO-2/files
+```
+
+```
+mv zarf_v0.69.0_Linux_amd64 zarf
+```
+
+```
+chmod +x zarf
+```
+
+```
+sudo mv zarf /usr/local/bin/zarf
+```
+
+3. Create and Save Sentinel Docker Image
+```bash
+cd repo/DEMO-2/DOCKER_IMAGE
+```
+
+```
+docker build -t sentinel:v1 .
+```
+
+```bash
+docker save sentinel:v1 -o sentinel-v1.tar
+```
+3. Create Zarf Package
+	1. Init Package
+	2. Traefik Package
+	3. Argocd App Package
+	4. Sentinel AppSet Package
+#### Part B
+1. Move over Zarf Packages & Binary
+2. Zarf Init + kind cluster
+3. Zarf install Traefik Package
+4. Zarf install Argocd App
+5. Zarf Install Sentinel Appset
+
