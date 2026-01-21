@@ -3,7 +3,6 @@ metadata:
   name: traefik
   description: zarf package for traefik
   version: 0.0.1
-  architecture: arm64
 components:
   - name: traefik
     required: true
