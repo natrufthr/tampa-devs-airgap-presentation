@@ -32,14 +32,6 @@ components:
         releaseName: argo-cd
         valuesFiles:
           - values.yaml
-    images:
-      - ecr-public.aws.com/docker/library/redis:8.2.2-alpine
-      - ghcr.io/dexidp/dex:v2.44.0
-      - quay.io/argoproj/argocd:v3.2.1
-      # Cosign artifacts for images - argocd
-      - ghcr.io/dexidp/dex:sha256-5d0656fce7d453c0e3b2706abf40c0d0ce5b371fb0b73b3cf714d05f35fa5f86.sig
-      - quay.io/argoproj/argocd:sha256-a8532a23ed5f6e65afaf2a082b65fc74614549e54774f6b25fe3c993faa7bea3.sig
-      - quay.io/argoproj/argocd:sha256-a8532a23ed5f6e65afaf2a082b65fc74614549e54774f6b25fe3c993faa7bea3.att
   - name: create-vs-n-gw
     actions:
       # runs during "zarf package deploy"
