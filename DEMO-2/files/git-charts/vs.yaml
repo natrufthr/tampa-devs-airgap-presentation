@@ -1,0 +1,19 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: sentinel
+  namespace: ###ZARF_VAR_NAMESPACE###
+spec:
+  hosts:
+  - ###ZARF_VAR_DOMAIN_NAME###
+  gateways:
+  - sentinel-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: sentinel
+        port:
+          number: 80

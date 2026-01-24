@@ -1,35 +1,28 @@
 server:
-  # Run in insecure mode (Traefik handles TLS)
-  insecure: true
-  
-  # Set your ArgoCD URL
-  config:
-    url: https://argocd.tampa.devs
-  
-  # Ingress configuration
+  # Disable built-in ingress (we'll use Istio Gateway)
   ingress:
-    enabled: true
-    ingressClassName: traefik
-    
-    annotations:
-      traefik.ingress.kubernetes.io/router.entrypoints: websecure
-      traefik.ingress.kubernetes.io/router.tls: "true"
-      # Optional: HTTP to HTTPS redirect
-      # traefik.ingress.kubernetes.io/redirect-entry-point: https
-      # traefik.ingress.kubernetes.io/redirect-permanent: "true"
-    
-    hosts:
-      - argocd.tampa.devs
-    
-    tls:
-      - secretName: argocd-tls
-        hosts:
-          - argocd.tampa.devs
-    
-    # Use HTTP backend (port 80)
-    https: false
+    enabled: false
 
-configs:
-  params:
-    server.insecure: true
+  # Important: Configure for Istio
+  extraArgs:
+    - --insecure  # Terminate TLS at Istio Gateway
+
+  service:
+    type: ClusterIP  # Use ClusterIP (Istio will handle external access)
+
+  # Metrics for Istio monitoring
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
+# Optional: HA setup
+controller:
+  replicas: 1
+
+repoServer:
+  replicas: 1
+
+redis-ha:
+  enabled: false
 

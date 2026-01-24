@@ -1,0 +1,55 @@
+kind: ZarfPackageConfig
+metadata:
+  name: istio
+  description: istio-install
+  version: 0.0.1
+components:
+  - name: on-deploy
+    actions:
+      # runs during "zarf package deploy"
+      onDeploy:
+        defaults:
+          dir: ""
+          env: []
+          maxRetries: 0
+          maxTotalSeconds: 300
+          mute: false
+          shell:
+            darwin: sh
+            linux: sh
+            windows: powershell
+        before:
+          - cmd: zarf tools kubectl create ns istio-system
+  - name: istio-base
+    required: true
+    charts:
+      - name: base
+        version: 1.28.1
+        namespace: istio-system
+        url: https://istio-release.storage.googleapis.com/charts
+        releaseName: base
+  - name: istiod
+    required: true
+    charts:
+      - name: istiod
+        version: 1.28.1
+        namespace: istio-system
+        url: https://istio-release.storage.googleapis.com/charts
+        releaseName: istiod
+    images:
+      - docker.io/istio/pilot:1.28.1
+      # Cosign artifacts for images - istiod
+      - index.docker.io/istio/pilot:sha256-43e24609869d90ea7c12c878474e5905b02676e7dd827903be42c15599cde1b7.sig
+
+  - name: istio-gateway
+    required: true
+    charts:
+      - name: gateway
+        version: 1.28.1
+        namespace: istio-system
+        url: https://istio-release.storage.googleapis.com/charts
+        releaseName: gateway
+        valuesFiles:
+          - values.yaml
+    images:
+      - docker.io/istio/proxyv2:1.28.1

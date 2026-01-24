@@ -1,0 +1,27 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: sentinel-gateway
+  namespace: ###ZARF_VAR_NAMESPACE###
+spec:
+  selector:
+    app: gateway  # Use default Istio ingress gateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - ###ZARF_VAR_DOMAIN_NAME###
+    # Optional: HTTP to HTTPS redirect
+    tls:
+      httpsRedirect: true
+  - port:
+      number: 443
+      name: https
+      protocol: HTTPS
+    hosts:
+    - ###ZARF_VAR_DOMAIN_NAME###
+    tls:
+      mode: SIMPLE
+      credentialName: sentinel-tls-cert  # Create this secret
