@@ -1,0 +1,23 @@
+kind: ZarfPackageConfig
+metadata:
+  name: sentinel-charts
+  description: zarf package for sentinel drone tracker
+  version: 0.0.1
+
+components:
+  - name: sentinel
+    required: true
+    charts:
+      - name: sentinel
+        version: 1.0.0
+        namespace: sentinel
+        localPath: sentinel
+        valuesFiles:
+          - sentinel/values.yaml
+    images:
+      - nginx:latest
+      - sentinel:v1
+    actions:
+      onDeploy:
+        before:
+          - cmd: ./zarf tools kubectl create namespace sentinel --dry-run=client -o yaml | ./zarf tools kubectl apply -f -

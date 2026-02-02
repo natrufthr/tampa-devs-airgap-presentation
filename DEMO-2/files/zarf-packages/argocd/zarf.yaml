@@ -1,0 +1,51 @@
+kind: ZarfPackageConfig
+metadata:
+  name: istio
+  description: argocd-w-istio
+  version: 0.0.1
+components:
+  - name: create-cert
+    actions:
+      # runs during "zarf package deploy"
+      onDeploy:
+        defaults:
+          dir: ""
+          env: []
+          maxRetries: 0
+          maxTotalSeconds: 300
+          mute: false
+          shell:
+            darwin: sh
+            linux: sh
+            windows: powershell
+        before:
+          - cmd: zarf tools gen-pki argocd.example.com
+          - cmd: zarf tools kubectl create ns argocd
+          - cmd: zarf tools kubectl create secret tls argocd-tls-cert --cert=tls.crt --key=tls.key -n istio-system
+  - name: argocd
+    required: true
+    charts:
+      - name: argo-cd
+        version: 9.1.6
+        namespace: argocd
+        url: https://argoproj.github.io/argo-helm
+        releaseName: argo-cd
+        valuesFiles:
+          - values.yaml
+  - name: create-vs-n-gw
+    actions:
+      # runs during "zarf package deploy"
+      onDeploy:
+        defaults:
+          dir: ""
+          env: []
+          maxRetries: 0
+          maxTotalSeconds: 300
+          mute: false
+          shell:
+            darwin: sh
+            linux: sh
+            windows: powershell
+        after:
+          - cmd: zarf tools kubectl apply -f gw.yaml
+          - cmd: zarf tools kubectl apply -f vs.yaml

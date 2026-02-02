@@ -1,0 +1,52 @@
+kind: ZarfPackageConfig
+metadata:
+  name: sentinel-namespace-istio
+  description: zarf add sentinel namespace
+  version: 0.0.1
+
+variables:
+  - name: DOMAIN_NAME
+    prompt: true
+  - name: NAMESPACE
+    prompt: true
+components:
+  - name: create-cert
+    actions:
+      # runs during "zarf package deploy"
+      onDeploy:
+        defaults:
+          dir: ""
+          env: []
+          maxRetries: 0
+          maxTotalSeconds: 300
+          mute: false
+          shell:
+            darwin: sh
+            linux: sh
+            windows: powershell
+        before:
+          - cmd: zarf tools gen-pki ${ZARF_VAR_DOMAIN_NAME}
+          - cmd: zarf tools kubectl create ns ${ZARF_VAR_NAMESPACE}
+          - cmd: zarf tools kubectl create secret tls sentinel-tls-cert --cert=tls.crt --key=tls.key -n istio-system
+  - name: sentinel
+    required: true
+    images:
+      - sentinel:v1
+      - nginx:latest
+    actions:
+      onDeploy:
+        before:
+          - cmd: ./zarf tools kubectl create namespace ${ZARF_VAR_NAMESPACE} --dry-run=client -o yaml | ./zarf tools kubectl apply -f -
+    manifests:
+      - name: sentinel-appset
+        files:
+          - sentinel-appset-w-values.yaml
+  - name: create-vs-n-gw
+    required: true
+    manifests:
+      - name: virtual-service-n-gateway
+        files:
+          # local manifests are specified relative to the `zarf.yaml` that uses them:
+          - gw.yaml
+          - vs.yaml
+

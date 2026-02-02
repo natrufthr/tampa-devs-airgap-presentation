@@ -1,0 +1,47 @@
+replicaCount: 1
+
+image:
+  repository: sentinel
+  tag: v1
+  pullPolicy: IfNotPresent
+
+imageCredentials:
+  enabled: true
+  registry: ###ZARF_REGISTRY###
+  username: "zarf-pull"
+  password: ###ZARF_REGISTRY_AUTH_PULL###
+  # email: ""
+
+imagePullSecret:
+  name: private-registry
+
+# Option 2: Reference existing imagePullSecrets
+imagePullSecrets: []
+# Example:
+# imagePullSecrets:
+#   - name: existing-secret
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: traefik
+  annotations: {}
+    # kubernetes.io/tls-acme: "true"
+  host: sentinel.local
+  path: /
+  pathType: Prefix
+  tls: []
+  #  - secretName: sentinel-tls
+  #    hosts:
+  #      - sentinel.local
+
+resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi

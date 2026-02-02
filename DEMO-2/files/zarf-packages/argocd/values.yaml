@@ -1,0 +1,28 @@
+server:
+  # Disable built-in ingress (we'll use Istio Gateway)
+  ingress:
+    enabled: false
+
+  # Important: Configure for Istio
+  extraArgs:
+    - --insecure  # Terminate TLS at Istio Gateway
+
+  service:
+    type: ClusterIP  # Use ClusterIP (Istio will handle external access)
+
+  # Metrics for Istio monitoring
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
+# Optional: HA setup
+controller:
+  replicas: 1
+
+repoServer:
+  replicas: 1
+
+redis-ha:
+  enabled: false
+

@@ -1,0 +1,2 @@
+zarf_v0.69.0_Linux_amd64 filter=lfs diff=lfs merge=lfs -text
+../../DEMO-2/files/zarf_v0.69.0_Linux_amd64 filter=lfs diff=lfs merge=lfs -text
